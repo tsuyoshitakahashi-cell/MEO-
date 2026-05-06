@@ -1,10 +1,14 @@
 # MEOテキスト生成ツール
 
-SHO-SAN社内向けのMEO初期構築アシスタント。自社HPと競合HPのURLを入力するだけで、AIO対策された GBP用テキスト群を一括生成します。
+SHO-SAN社内向けのMEO初期構築アシスタント。自社HPと競合HPのURLを入力するだけで、AIO対策された GBP用テキスト群（11種）を一括生成します。
 
-## 仕様
+**本番URL**: https://meo-text-tool.vercel.app
 
-仕様の詳細は `docs/` を参照してください。
+## 利用者向け
+
+- `docs/manual.md` — **MEO担当者向け操作マニュアル**（社内利用ならまずこれ）
+
+## 開発者向けドキュメント
 
 - `docs/requirements.md` — 要求書（WHAT/WHY）
 - `docs/design.md` — 設計書（HOW）
@@ -94,6 +98,28 @@ npx vercel --prod
 └── package.json
 ```
 
+## CLI デモスクリプト
+
+ローカルで動作確認用の CLI スクリプトが用意されています。
+
+```bash
+# HP巡回・商品抽出のみ（API不要）
+npm run scrape:demo -- https://example-komuten.co.jp/
+
+# 競合分析（要 GEMINI_API_KEY）
+npm run analyze:demo -- https://self.example.com https://comp1.example.com https://comp2.example.com
+
+# 文章生成（要 GEMINI_API_KEY）
+npm run generate:demo -- https://self.example.com "注文住宅,リノベーション,平屋,飯塚市,耐震等級3"
+```
+
+## テスト
+
+```bash
+npm test            # 1回だけ実行
+npm run test:watch  # ウォッチモード
+```
+
 ## 開発ステータス
 
-Phase 0 完了。Phase 1（スクレイパー基盤）以降は `docs/plan.md` を参照。
+Phase 0〜5 すべて実装完了。社内テストフェーズ。詳細は `docs/plan.md` を参照。
