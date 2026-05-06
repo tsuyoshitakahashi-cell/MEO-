@@ -75,14 +75,18 @@ JSONのみで返却。**20個** のキーワードを返してください。
 - 他カテゴリも各最低2個ずつ含めるよう努めてください
 - 各KWは **可能な限りロングテール（複合語）** に。1語のKWは20個中5個以下に抑えてください`;
 
-/** Gemini API responseSchema 用 */
+/**
+ * Gemini API responseSchema 用
+ *
+ * NOTE: minItems/maxItems は付けない。20個 + 複数enum の組合せで
+ * "too many states for serving" エラーになるため、
+ * 個数制御はプロンプト + Zod のpost-validation で行う。
+ */
 export const KW_SELECTION_RESPONSE_SCHEMA = {
   type: "object",
   properties: {
     keywords: {
       type: "array",
-      minItems: 15,
-      maxItems: 20,
       items: {
         type: "object",
         properties: {
