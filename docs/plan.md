@@ -64,24 +64,27 @@
 ## Phase 2: 競合分析（3日）
 
 ### 2-1. TF-IDF分析（1.5日）
-- [ ] kuromoji.js 導入・動作確認
-- [ ] `lib/analyzer/tfidf.ts`: 形態素解析→TF-IDF算出
-- [ ] 自社をベースラインに、競合のTF-IDF差分上位50語を抽出
-- [ ] ユニットテスト
+- [x] kuromoji.js 導入、辞書パス設定、tokenizer初期化キャッシュ (done: 2026-05-06)
+- [x] `lib/analyzer/tokenize.ts`: 形態素解析、名詞抽出、複合名詞、ストップワード除外 (done: 2026-05-06)
+- [x] `lib/analyzer/tfidf.ts`: 自社baseline×競合の差分TF-IDF上位50語 (done: 2026-05-06)
+- [x] ユニットテスト（tokenize 7本 + tfidf 4本） (done: 2026-05-06)
 
 ### 2-2. Claude APIでKW精選（1日）
-- [ ] `lib/analyzer/prompts.ts`: 競合KW精選プロンプト整備
-- [ ] プロンプトキャッシュ設定（cache_control: ephemeral）
-- [ ] JSON Schema出力（10個のKW + メタ情報）
-- [ ] `lib/analyzer/analyze.ts`: 巡回→TF-IDF→精選のオーケストレーター
-- [ ] `server/actions/analyze-competitors.ts`
+- [x] `lib/analyzer/claude-client.ts`: SDKラッパー、cache_control: ephemeral でプロンプトキャッシュ (done: 2026-05-06)
+- [x] `lib/analyzer/prompts.ts`: AIO/MEO観点でのKW精選プロンプト + Zod schema(10KW) (done: 2026-05-06)
+- [x] `lib/analyzer/analyze.ts`: 巡回→TF-IDF→Claude のオーケストレーター (done: 2026-05-06)
+- [x] `server/actions/analyze-competitors.ts`: フォーム呼び出し可能なServer Action (done: 2026-05-06)
 
 ### 2-3. UI（0.5日）
-- [ ] 入力フォーム（自社URL + 競合URL × 3〜5）
-- [ ] 競合分析結果カード（10KWをカテゴリ別グリッド、チェックボックス）
-- [ ] ローディング・エラー表示
+- [x] `components/competitor-form.tsx`: 自社URL + 競合URL3〜5、追加/削除可能 (done: 2026-05-06)
+- [x] 結果カード: 10KWを5カテゴリ別grid、チェックボックス、推奨度バッジ、AI引用スコア表示 (done: 2026-05-06)
+- [x] ローディング・エラー・バリデーション (done: 2026-05-06)
 
-**完了条件**: 自社+競合URLを入れると10個のKWがカテゴリ別に提案される
+### 2-4. 動作確認
+- [x] CLIデモスクリプト `scripts/analyze-demo.ts` (done: 2026-05-06)
+- [x] `npm run analyze:demo <self> <comp1..>` で実行可能 (done: 2026-05-06)
+
+**完了条件**: 自社+競合URLを入れると10個のKWがカテゴリ別に提案される ✓
 
 ---
 
