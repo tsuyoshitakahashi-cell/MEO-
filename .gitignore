@@ -44,5 +44,8 @@ next-env.d.ts
 # local npm cache
 /.npm-cache
 
+# Claude Code local state
+/.claude
+
 # drizzle migrations output (regenerable)
 /drizzle
