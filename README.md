@@ -15,7 +15,7 @@ SHO-SAN社内向けのMEO初期構築アシスタント。自社HPと競合HPの
 - Next.js 16 (App Router) + TypeScript
 - Tailwind CSS + shadcn/ui (radix-nova)
 - Drizzle ORM + Neon Postgres (Vercel Marketplace)
-- Anthropic Claude Sonnet 4.6
+- Google Gemini 2.5 Flash（無料枠 / responseSchema による構造化JSON出力）
 - Cheerio + kuromoji (HP巡回・形態素解析)
 
 ## アクセス制御
@@ -53,7 +53,7 @@ npx vercel integration add neon
 
 | 変数 | 取得元 |
 |---|---|
-| `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
+| `GEMINI_API_KEY` | https://aistudio.google.com/apikey （Googleアカウントでログイン → Create API key、クレカ登録不要） |
 
 ### 5. データベースマイグレーション
 

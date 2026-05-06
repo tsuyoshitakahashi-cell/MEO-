@@ -18,8 +18,8 @@
 | 言語 | TypeScript | 5.x | 型安全 |
 | UIライブラリ | shadcn/ui + Tailwind CSS | 最新 | 軽量・カスタマイズ容易 |
 | フォーム管理 | React Hook Form + Zod | 最新 | バリデーション統合 |
-| LLM | Anthropic Claude Sonnet 4.6 | claude-sonnet-4-6 | コスト/品質のバランス、プロンプトキャッシュ活用 |
-| LLM SDK | @anthropic-ai/sdk | 最新 | 公式SDK |
+| LLM | Google Gemini 2.5 Flash | gemini-2.5-flash | 無料枠で十分（15rpm / 1Mトークン/日）、responseSchemaで構造化出力 |
+| LLM SDK | @google/genai | 最新 | 公式統一SDK |
 | HTMLスクレイピング | Cheerio + fetch | 最新 | 軽量、JSレンダリング不要なサイト向け |
 | 認証 | なし | — | 社内URL秘匿運用、必要に応じVercel Deployment Protection後付け |
 | データベース | Vercel Postgres | — | Vercel完結、運用負荷低 |
@@ -45,16 +45,16 @@
 │  ├ Server Action: analyzeCompetitors                │
 │  │   ├ 自社+競合HP巡回（並列）                       │
 │  │   ├ 本文抽出 + KW頻度分析                         │
-│  │   └ Claude APIでKW精選 + カテゴリ分類            │
+│  │   └ Gemini APIでKW精選 + カテゴリ分類            │
 │  └ Server Action: generateTexts                     │
-│      ├ 採用KWと取得HPをClaude APIに投入             │
+│      ├ 採用KWと取得HPをGemini APIに投入             │
 │      ├ AIOプロンプトで11種テキスト生成              │
 │      └ 結果保存                                      │
 └────────┬────────────────────────┬──────────────────┘
          ↓                        ↓
 ┌──────────────────┐    ┌──────────────────┐
-│  Anthropic API    │    │  Vercel Postgres │
-│  (Sonnet 4.6)     │    │  (cases / users) │
+│  Gemini API    │    │  Vercel Postgres │
+│  (gemini-2.5-flash)│   │  (cases)         │
 └──────────────────┘    └──────────────────┘
 ```
 
@@ -92,7 +92,7 @@
 │   │   │   ├── analyze.ts              # 競合分析オーケストレーター
 │   │   │   └── prompts.ts              # KW精選プロンプト
 │   │   ├── generator/
-│   │   │   ├── claude-client.ts
+│   │   │   ├── gemini-client.ts
 │   │   │   ├── prompts.ts              # AIO対策システムプロンプト
 │   │   │   └── generate.ts             # 11種一括生成オーケストレーター
 │   │   └── db/
@@ -173,7 +173,7 @@
 4. 優先度順に最大5ページずつ追加取得（並列）
 5. 全本文を結合し、形態素解析（kuromoji）でtoken化
 6. TF-IDFで競合特徴KWを抽出（自社をベースラインに相対比較）
-7. Claude APIに以下を渡してKW精選 + カテゴリ分類:
+7. Gemini APIに以下を渡してKW精選 + カテゴリ分類:
    - 競合TF-IDF上位50語
    - 自社頻出KW
    - AI引用適性の判定指示
@@ -185,7 +185,7 @@
 
 ```
 1. ユーザーが採用KWを選択 → generateTexts実行
-2. 取得済みのHP本文と採用KWをClaude APIに投入
+2. 取得済みのHP本文と採用KWをGemini APIに投入
 3. システムプロンプト（AIO対策ルール）+ ユーザープロンプトで一括生成
 4. 出力構造:
    {
@@ -286,7 +286,15 @@
 
 ### 2026-05-06 — 競合は最大5社・各最大5ページ
 - 5×5=25ページ並列fetch、Vercel関数の制限内（60秒）
-- Anthropic APIへの投入トークンも管理可能範囲
+- Gemini APIへの投入トークンも管理可能範囲
+
+### 2026-05-06 — LLMをAnthropic ClaudeからGoogle Geminiへ切替
+- Anthropic は従量課金で社内利用にハードルあり
+- Gemini 2.5 Flash の無料枠（15rpm / 1Mトークン日 / 1500req日）で十分
+- responseSchema による構造化出力でJSON失敗率が下がる
+- パッケージ: `@anthropic-ai/sdk` → `@google/genai`
+- 環境変数: `ANTHROPIC_API_KEY` → `GEMINI_API_KEY`
+- 仕様書のLLM参照箇所を全更新
 
 ### 2026-05-06 — 認証機能を撤廃
 - ログイン UI が冗長に感じられたため削除
@@ -305,7 +313,7 @@
 |---|---|---|
 | HPがJSレンダリング必須 | 本文抽出失敗 | Phase 4でPlaywright導入を検討 |
 | 競合5サイトの巡回が遅い | UX劣化 | 並列fetch、タイムアウト10秒 |
-| Anthropic APIコスト超過 | 月$50超 | プロンプトキャッシュ、入力トークン上限設定 |
+| Gemini API無料枠超過 | 一時的に呼び出し失敗 | 15rpm/1Mトークン日上限。レート制限時は1分待機リトライ。Pro有料プランへの切替も可 |
 | 商品ページ自動抽出の精度低下 | 商品説明の質低下 | URLパターン辞書を継続更新 |
 | 競合HPがrobots.txtで拒否 | 巡回失敗 | エラー時はメッセージ表示、他のHPで継続 |
 | 形態素解析の精度 | KW抽出精度低下 | kuromojiの辞書をipadic標準で運用、必要に応じカスタム辞書追加 |

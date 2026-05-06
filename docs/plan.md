@@ -69,10 +69,10 @@
 - [x] `lib/analyzer/tfidf.ts`: 自社baseline×競合の差分TF-IDF上位50語 (done: 2026-05-06)
 - [x] ユニットテスト（tokenize 7本 + tfidf 4本） (done: 2026-05-06)
 
-### 2-2. Claude APIでKW精選（1日）
+### 2-2. Gemini APIでKW精選（1日）
 - [x] `lib/analyzer/claude-client.ts`: SDKラッパー、cache_control: ephemeral でプロンプトキャッシュ (done: 2026-05-06)
 - [x] `lib/analyzer/prompts.ts`: AIO/MEO観点でのKW精選プロンプト + Zod schema(10KW) (done: 2026-05-06)
-- [x] `lib/analyzer/analyze.ts`: 巡回→TF-IDF→Claude のオーケストレーター (done: 2026-05-06)
+- [x] `lib/analyzer/analyze.ts`: 巡回→TF-IDF→Gemini のオーケストレーター (done: 2026-05-06)
 - [x] `server/actions/analyze-competitors.ts`: フォーム呼び出し可能なServer Action (done: 2026-05-06)
 
 ### 2-3. UI（0.5日）
@@ -97,7 +97,7 @@
 - [ ] サービス説明5軸の自動選定ロジック（プロンプト指示）
 
 ### 3-2. 一括生成オーケストレーター（1日）
-- [ ] `lib/generator/generate.ts`: 採用KW + 取得HP + 抽出商品をClaude APIに投入
+- [ ] `lib/generator/generate.ts`: 採用KW + 取得HP + 抽出商品をGemini APIに投入
 - [ ] 文字数バリデーション（超過時は末尾削除）
 - [ ] エラーハンドリング・リトライ3回
 - [ ] `server/actions/generate-texts.ts`
@@ -155,7 +155,7 @@
    - GitHub: リポジトリが空であること（既存ファイルがあれば事前にバックアップ）
    - Vercel CLI ログイン（`vercel login`）
    - Google Cloud Console で OAuth 2.0 クライアント発行（後述）
-   - Anthropic API キーの準備
+   - Gemini API キーの準備（無料、https://aistudio.google.com/apikey）
 3. **Claude Code でできるタスク**:
    - Next.js プロジェクトのscaffold
    - shadcn/ui・Drizzle・NextAuth のセットアップ

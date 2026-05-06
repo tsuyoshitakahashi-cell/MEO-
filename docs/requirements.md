@@ -78,7 +78,7 @@
 2. 競合HPの出現頻度KW分析（TF-IDFベース、自社HPと相対比較）
 3. AI検索で引用されやすい構造的KW抽出（疑問形・How-to系・地域+サービス系）
 4. 自社HPに不足しているKWを差分検出
-5. 上記を統合し、Claude APIで10個のKWに精選
+5. 上記を統合し、Gemini APIで10個のKWに精選
 6. 5カテゴリに分類
 
 #### 出力
@@ -159,7 +159,7 @@
 | 同時利用 | 5名同時利用で性能劣化なし |
 | 可用性 | Vercel SLA 準拠（99.9%以上） |
 | セキュリティ | URL秘匿で運用（必要時にVercel Deployment Protection追加）。APIキーは環境変数管理 |
-| コスト上限 | Anthropic API費用は月 $50 以内 |
+| コスト上限 | Gemini API 無料枠で運用、原則 $0 |
 
 ---
 
@@ -189,7 +189,7 @@
 
 ## 8. 制約・前提
 
-- Anthropic API（Claude Sonnet 4.6）使用
+- Google Gemini 2.5 Flash（無料枠）使用
 - ホスティング: Vercel
 - データベース: Vercel Postgres
 - 認証: なし（URL秘匿運用）

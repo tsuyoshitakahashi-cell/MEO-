@@ -5,9 +5,10 @@ import {
 } from "@/lib/scraper/classify-pages";
 import { extractContent } from "@/lib/scraper/extract-content";
 import { analyzeTfidfDiff } from "./tfidf";
-import { callClaudeJson } from "./claude-client";
+import { callGeminiJson } from "./gemini-client";
 import {
   KW_SELECTION_SYSTEM_PROMPT,
+  KW_SELECTION_RESPONSE_SCHEMA,
   KeywordSelectionSchema,
   buildKwSelectionUserPrompt,
   type KeywordSelection,
@@ -61,9 +62,10 @@ export async function analyzeCompetitors(
     })),
   });
 
-  const raw = await callClaudeJson<unknown>({
+  const raw = await callGeminiJson<unknown>({
     systemPrompt: KW_SELECTION_SYSTEM_PROMPT,
     userPrompt,
+    responseSchema: KW_SELECTION_RESPONSE_SCHEMA,
   });
 
   const selection = KeywordSelectionSchema.parse(raw);

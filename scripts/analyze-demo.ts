@@ -8,12 +8,12 @@
  *   npx dotenv -e .env.local -- tsx scripts/analyze-demo.ts https://self.example.com https://comp1.example.com https://comp2.example.com https://comp3.example.com
  *
  * 必須環境変数:
- *   ANTHROPIC_API_KEY  (.env.local に設定)
+ *   GEMINI_API_KEY  (.env.local に設定)
  *
  * 動作:
  *   1. 自社+競合のHPを並列巡回
  *   2. 形態素解析→TF-IDFで上位50KW抽出
- *   3. Claude APIで10KW精選 + 5カテゴリ分類
+ *   3. Gemini APIで10KW精選 + 5カテゴリ分類
  *   4. 結果をコンソール出力
  */
 
@@ -28,8 +28,8 @@ async function main() {
     process.exit(1);
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("ANTHROPIC_API_KEY が未設定です。.env.local に追加してください。");
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY が未設定です。.env.local に追加してください。");
     process.exit(1);
   }
 
@@ -38,7 +38,7 @@ async function main() {
   for (const url of competitorUrls) console.log(`  - ${url}`);
   console.log();
 
-  console.log("[*] 巡回 → TF-IDF → Claude精選 を実行中...（30〜60秒）");
+  console.log("[*] 巡回 → TF-IDF → Gemini精選 を実行中...（20〜40秒）");
   const start = Date.now();
   const result = await analyzeCompetitors({
     selfUrl,

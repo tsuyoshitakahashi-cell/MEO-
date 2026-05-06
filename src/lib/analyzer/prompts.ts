@@ -62,26 +62,60 @@ export const KW_SELECTION_SYSTEM_PROMPT = `あなたは工務店向けの MEO/AI
   - optional: 参考
 - reason: なぜこのKWを選定したか1文で説明
 
-【出力フォーマット】
-必ず以下のJSON形式のみを返してください。説明文・前置き・後書きは一切不要。
+【出力】
+JSONのみで返却。10個のキーワードを返してください。各カテゴリに最低1個ずつ含めるよう努めてください（業界・自社の特性で偏る場合は柔軟に）。`;
 
-\`\`\`json
-{
-  "keywords": [
-    {
-      "term": "...",
-      "category": "area|service|target|concern|authority",
-      "competitorCount": 0,
-      "selfCount": 0,
-      "aiCitationScore": "high|mid|low",
-      "recommendation": "must|recommend|optional",
-      "reason": "..."
-    }
-  ]
-}
-\`\`\`
-
-10個のキーワードを返してください。各カテゴリに最低1個ずつ含めるよう努めてください（業界・自社の特性で偏る場合は柔軟に）。`;
+/** Gemini API responseSchema 用 */
+export const KW_SELECTION_RESPONSE_SCHEMA = {
+  type: "object",
+  properties: {
+    keywords: {
+      type: "array",
+      minItems: 5,
+      maxItems: 10,
+      items: {
+        type: "object",
+        properties: {
+          term: { type: "string" },
+          category: {
+            type: "string",
+            enum: ["area", "service", "target", "concern", "authority"],
+          },
+          competitorCount: { type: "integer" },
+          selfCount: { type: "integer" },
+          aiCitationScore: {
+            type: "string",
+            enum: ["high", "mid", "low"],
+          },
+          recommendation: {
+            type: "string",
+            enum: ["must", "recommend", "optional"],
+          },
+          reason: { type: "string" },
+        },
+        required: [
+          "term",
+          "category",
+          "competitorCount",
+          "selfCount",
+          "aiCitationScore",
+          "recommendation",
+          "reason",
+        ],
+        propertyOrdering: [
+          "term",
+          "category",
+          "competitorCount",
+          "selfCount",
+          "aiCitationScore",
+          "recommendation",
+          "reason",
+        ],
+      },
+    },
+  },
+  required: ["keywords"],
+} as const;
 
 export interface KwSelectionInput {
   selfUrl: string;
