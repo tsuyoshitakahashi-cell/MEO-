@@ -23,20 +23,18 @@
 
 - [x] Next.js 16 プロジェクト生成（create-next-app, pnpmは権限エラーでnpm採用）(done: 2026-05-06)
 - [x] TypeScript / Tailwind / shadcn/ui セットアップ (done: 2026-05-06)
-- [x] Drizzle ORM セットアップ + 初期スキーマ（users / accounts / sessions / cases） (done: 2026-05-06)
+- [x] Drizzle ORM セットアップ + cases スキーマ (done: 2026-05-06)
+- [x] DB ドライバを @neondatabase/serverless へ移行 (done: 2026-05-06)
 - [x] `.env.example` 作成 (done: 2026-05-06)
-- [x] NextAuth v5 + Google Provider セットアップ (done: 2026-05-06)
-- [x] @sho-san.co.jp ドメイン制限を signIn callback で実装 (done: 2026-05-06)
-- [x] proxy（旧middleware）で /(app)/ ルートを認証ガード (done: 2026-05-06)
-- [x] サインイン画面 + 仮トップ画面 (done: 2026-05-06)
+- [x] 仮トップ画面 (done: 2026-05-06)
 - [x] git init + 初回コミット (done: 2026-05-06)
-- [ ] **【ユーザー操作】** GitHub remote へ `git push -u origin main`
-- [ ] **【ユーザー操作】** Vercel プロジェクト連携 (`npx vercel`)
-- [ ] **【ユーザー操作】** Vercel Postgres プロビジョニング
-- [ ] **【ユーザー操作】** Google OAuth クライアント発行 + `.env.local` 設定
-- [ ] **【ユーザー操作】** `npx drizzle-kit push` でDBスキーマ反映
+- [x] GitHub remote へ push (done: 2026-05-06)
+- [x] Vercel プロジェクト連携・GitHub auto-deploy 設定 (done: 2026-05-06)
+- [x] Vercel Marketplace 経由で Neon Postgres プロビジョニング (done: 2026-05-06)
+- [x] `.env.local` 取得 + drizzle-kit push でスキーマ反映 (done: 2026-05-06)
+- [x] 認証機能を撤廃（NextAuth / Google OAuth / 認証テーブル削除） (done: 2026-05-06)
 
-**完了条件**: @sho-san.co.jp でログインでき、DB接続OK
+**完了条件**: ローカル `npm run dev` でトップ画面が表示され、DB接続OK
 
 ---
 

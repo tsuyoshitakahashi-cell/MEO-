@@ -38,7 +38,7 @@
 ## 3. 利用シナリオ
 
 1. 担当者が新規クライアントのMEO案件を受任
-2. アプリにアクセスし、Googleアカウントでログイン
+2. アプリのURL（社内秘）にアクセス
 3. 入力フォームに以下を入力
    - 自社HP URL（必須）
    - 競合工務店URL（3〜5個）
@@ -143,10 +143,10 @@
 - 案件一覧画面で再編集可能
 - 案件名・作成日・最終更新日でソート/検索
 
-### 4.6 認証
+### 4.6 アクセス制御
 
-- Google OAuth（@sho-san.co.jp ドメイン限定）
-- ログインしないと使用不可
+- 認証機能は持たない（URLを社内のみで共有）
+- 必要になった場合は Vercel Deployment Protection を後付けで有効化
 
 ---
 
@@ -158,7 +158,7 @@
 | 文章生成の応答速度 | 30秒以内 |
 | 同時利用 | 5名同時利用で性能劣化なし |
 | 可用性 | Vercel SLA 準拠（99.9%以上） |
-| セキュリティ | Google OAuth + ドメイン制限。APIキーは環境変数管理 |
+| セキュリティ | URL秘匿で運用（必要時にVercel Deployment Protection追加）。APIキーは環境変数管理 |
 | コスト上限 | Anthropic API費用は月 $50 以内 |
 
 ---
@@ -192,7 +192,7 @@
 - Anthropic API（Claude Sonnet 4.6）使用
 - ホスティング: Vercel
 - データベース: Vercel Postgres
-- 認証: NextAuth (Auth.js) + Google Provider
+- 認証: なし（URL秘匿運用）
 - フロントエンド: Next.js 15 (App Router) + TypeScript + shadcn/ui
 
 ---

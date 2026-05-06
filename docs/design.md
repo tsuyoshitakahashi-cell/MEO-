@@ -6,7 +6,7 @@
 
 - **GitHubリポジトリ**: https://github.com/tsuyoshitakahashi-cell/MEO-.git
 - **Vercelアカウント**: tsuyoshi-takahashi-4965's projects
-- **認証ドメイン**: @sho-san.co.jp 限定
+- **アクセス制御**: なし（URL秘匿運用）
 
 ---
 
@@ -21,7 +21,7 @@
 | LLM | Anthropic Claude Sonnet 4.6 | claude-sonnet-4-6 | コスト/品質のバランス、プロンプトキャッシュ活用 |
 | LLM SDK | @anthropic-ai/sdk | 最新 | 公式SDK |
 | HTMLスクレイピング | Cheerio + fetch | 最新 | 軽量、JSレンダリング不要なサイト向け |
-| 認証 | NextAuth (Auth.js) v5 | 5.x | Google Provider + ドメイン制限が容易 |
+| 認証 | なし | — | 社内URL秘匿運用、必要に応じVercel Deployment Protection後付け |
 | データベース | Vercel Postgres | — | Vercel完結、運用負荷低 |
 | ORM | Drizzle ORM | 最新 | 軽量、型安全 |
 | ホスティング | Vercel | — | Next.js公式、CI/CD自動 |
@@ -42,7 +42,6 @@
                    ↓
 ┌────────────────────────────────────────────────────┐
 │  Next.js Server (Vercel)                            │
-│  ├ Auth (NextAuth + Google + ドメイン制限)          │
 │  ├ Server Action: analyzeCompetitors                │
 │  │   ├ 自社+競合HP巡回（並列）                       │
 │  │   ├ 本文抽出 + KW頻度分析                         │
@@ -72,15 +71,11 @@
 │   └── plan.md
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/signin/page.tsx
-│   │   ├── (app)/
-│   │   │   ├── layout.tsx              # 認証ガード
-│   │   │   ├── page.tsx                # 案件一覧
-│   │   │   └── cases/
-│   │   │       ├── new/page.tsx        # 新規案件（フォーム+結果のシングルページ）
-│   │   │       └── [id]/page.tsx       # 既存案件編集
-│   │   ├── api/auth/[...nextauth]/route.ts
-│   │   └── layout.tsx
+│   │   ├── layout.tsx
+│   │   ├── page.tsx                    # 案件一覧
+│   │   └── cases/
+│   │       ├── new/page.tsx            # 新規案件（フォーム+結果のシングルページ）
+│   │       └── [id]/page.tsx           # 既存案件編集
 │   ├── components/
 │   │   ├── ui/                         # shadcn/ui
 │   │   ├── case-form.tsx               # 入力フォーム
@@ -100,10 +95,9 @@
 │   │   │   ├── claude-client.ts
 │   │   │   ├── prompts.ts              # AIO対策システムプロンプト
 │   │   │   └── generate.ts             # 11種一括生成オーケストレーター
-│   │   ├── db/
-│   │   │   ├── schema.ts               # Drizzle schema
-│   │   │   └── client.ts
-│   │   └── auth.ts                     # NextAuth設定
+│   │   └── db/
+│   │       ├── schema.ts               # Drizzle schema
+│   │       └── client.ts
 │   ├── server/
 │   │   └── actions/
 │   │       ├── analyze-competitors.ts
@@ -131,13 +125,9 @@
 ## 4. データモデル
 
 ```typescript
-// users (NextAuth管理)
-{ id, email, name, image, createdAt }
-
-// cases (案件)
+// cases (案件) — 認証なしのため userId は持たない
 {
   id: uuid,
-  userId: uuid,
   name: string,                    // 案件名（会社名）
   input: {
     selfUrl: string,
@@ -226,15 +216,6 @@
 出力: Array<{ name, sourceUrl, summary }>
 ```
 
-### 5.4 認証フロー
-
-```
-1. /signin → Google OAuth
-2. signIn callback で email が @sho-san.co.jp で終わるかチェック
-3. NG なら拒否、OK ならセッション発行
-4. middleware で /(app)/ 全配下を session 必須に
-```
-
 ---
 
 ## 6. プロンプト設計
@@ -307,9 +288,10 @@
 - 5×5=25ページ並列fetch、Vercel関数の制限内（60秒）
 - Anthropic APIへの投入トークンも管理可能範囲
 
-### 2026-05-06 — 認証 NextAuth + Google
-- Clerk より社内ツールには軽量
-- ドメイン制限を `signIn` callback で実装
+### 2026-05-06 — 認証機能を撤廃
+- ログイン UI が冗長に感じられたため削除
+- 代替: URLを社内のみで共有、必要に応じて Vercel Deployment Protection を後付け
+- 関連削除: NextAuth/Auth.js、Google OAuth、users/accounts/sessions テーブル、cases.userId カラム
 
 ### 2026-05-06 — DB Vercel Postgres + Drizzle
 - Vercel完結、運用負荷低
