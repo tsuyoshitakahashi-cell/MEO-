@@ -41,19 +41,23 @@
 ## Phase 1: スクレイパー基盤（2日）
 
 ### 1-1. HP巡回（1日）
-- [ ] `lib/scraper/fetch-page.ts`: fetch + UA設定 + タイムアウト10秒
-- [ ] `lib/scraper/classify-pages.ts`: URLパターンで5カテゴリ分類
-- [ ] `lib/scraper/extract-content.ts`: cheerioで本文抽出（main/article優先）
-- [ ] フィクスチャ用の工務店HPサンプルを5社分保存
-- [ ] ユニットテスト（分類・本文抽出）
+- [x] `lib/scraper/fetch-page.ts`: fetch + UA設定 + タイムアウト10秒（並列取得関数も） (done: 2026-05-06)
+- [x] `lib/scraper/classify-pages.ts`: URLパターンで5カテゴリ分類 + 優先度ピック (done: 2026-05-06)
+- [x] `lib/scraper/extract-content.ts`: cheerioで本文抽出（main/article優先）+ 内部リンク + SNS抽出 (done: 2026-05-06)
+- [x] フィクスチャ（komuten-a 5ページ / komuten-b 2ページ） (done: 2026-05-06)
+- [x] ユニットテスト 23本（分類・本文抽出）全通過 (done: 2026-05-06)
 
 ### 1-2. 商品自動抽出（1日）
-- [ ] `lib/scraper/extract-products.ts`: /project/, /modelhouse/, /works/, /lineup/, /case/
-- [ ] h1/title・サムネ・内部被リンク数で重要度スコア算出
-- [ ] 上位5件を選定するロジック
-- [ ] ユニットテスト
+- [x] `lib/scraper/extract-products.ts`: 商品URLパターン、h1/img/被リンク数/パス深さでスコア (done: 2026-05-06)
+- [x] 上位5件を選定するロジック (done: 2026-05-06)
+- [x] ユニットテスト 10本 全通過 (done: 2026-05-06)
 
-**完了条件**: 工務店HP URLを与えると、本文と上位5商品が抽出される
+### 1-3. 動作確認
+- [x] vitest セットアップ (done: 2026-05-06)
+- [x] CLIデモスクリプト `scripts/scrape-demo.ts` (done: 2026-05-06)
+- [x] end-to-end 実行確認（example.com） (done: 2026-05-06)
+
+**完了条件**: 工務店HP URLを与えると、本文と上位5商品が抽出される ✓
 
 ---
 
