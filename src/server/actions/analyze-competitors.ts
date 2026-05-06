@@ -10,7 +10,6 @@ const InputSchema = z.object({
   selfUrl: z.string().url("自社HPのURLが不正です"),
   competitorUrls: z
     .array(z.string().url("競合URLが不正です"))
-    .min(3, "競合URLは3つ以上必要です")
     .max(5, "競合URLは5つまでです"),
 });
 

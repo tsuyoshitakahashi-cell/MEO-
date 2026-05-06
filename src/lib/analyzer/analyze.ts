@@ -50,10 +50,11 @@ export async function analyzeCompetitors(
   // TF-IDF差分分析
   const topTerms = await analyzeTfidfDiff(self, competitors, 50);
 
-  // Claude APIで精選
+  // Gemini APIで精選
   const userPrompt = buildKwSelectionUserPrompt({
     selfUrl: input.selfUrl,
     competitorUrls: input.competitorUrls,
+    selfTextExcerpt: self.text,
     topTerms: topTerms.map((t) => ({
       term: t.term,
       selfCount: t.selfCount,

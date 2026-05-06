@@ -70,9 +70,7 @@ export function CompetitorForm({ initial }: Props) {
   const [caseId, setCaseId] = useState<string | null>(initial?.id ?? null);
   const [selfUrl, setSelfUrl] = useState(initial?.selfUrl ?? "");
   const [competitorUrls, setCompetitorUrls] = useState<string[]>(
-    initial?.competitorUrls.length
-      ? padToMinLength(initial.competitorUrls, 3)
-      : ["", "", ""],
+    initial?.competitorUrls.length ? initial.competitorUrls : [""],
   );
   const [result, setResult] = useState<AnalyzeResult | null>(
     initial?.competitorAnalysis ?? null,
@@ -106,9 +104,7 @@ export function CompetitorForm({ initial }: Props) {
   }
 
   function removeCompetitor(index: number) {
-    if (competitorUrls.length > 3) {
-      setCompetitorUrls(competitorUrls.filter((_, i) => i !== index));
-    }
+    setCompetitorUrls(competitorUrls.filter((_, i) => i !== index));
   }
 
   function validateInputs(): string | null {
@@ -116,8 +112,8 @@ export function CompetitorForm({ initial }: Props) {
       return "自社HPのURLを正しく入力してください";
     }
     const filledCompetitors = competitorUrls.filter((u) => u.trim() !== "");
-    if (filledCompetitors.length < 3) {
-      return "競合HPは3〜5社入力してください";
+    if (filledCompetitors.length > 5) {
+      return "競合HPは5社までです";
     }
     for (const url of filledCompetitors) {
       if (!URL_SCHEMA.safeParse(url).success) {
@@ -268,7 +264,8 @@ export function CompetitorForm({ initial }: Props) {
         <CardHeader>
           <CardTitle>競合分析・対策KW提案</CardTitle>
           <CardDescription>
-            自社HPと競合工務店3〜5社のHPを入力すると、AIO対策に有効なキーワード10個をカテゴリ別に提案します。
+            自社HPを入力するとAIO対策に有効なキーワード10個をカテゴリ別に提案します。
+            競合HP（任意・最大5社）を追加すると差分分析の精度が上がります。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -297,26 +294,27 @@ export function CompetitorForm({ initial }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label>競合HP URL（3〜5社）</Label>
+            <Label>競合HP URL（任意・最大5社）</Label>
+            <p className="text-xs text-muted-foreground">
+              空のままでもKW提案は可能です。競合URLを追加するとTF-IDF差分分析でより精度が上がります。
+            </p>
             {competitorUrls.map((url, i) => (
               <div key={i} className="flex gap-2">
                 <Input
                   type="url"
-                  placeholder={`競合 ${i + 1}: https://...`}
+                  placeholder={`競合 ${i + 1}（任意）: https://...`}
                   value={url}
                   onChange={(e) => updateCompetitorUrl(i, e.target.value)}
                   disabled={pending || generating || saving}
                 />
-                {competitorUrls.length > 3 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => removeCompetitor(i)}
-                    disabled={pending || generating || saving}
-                  >
-                    削除
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => removeCompetitor(i)}
+                  disabled={pending || generating || saving}
+                >
+                  削除
+                </Button>
               </div>
             ))}
             {competitorUrls.length < 5 && (
@@ -485,8 +483,3 @@ function groupByCategory(
   return grouped;
 }
 
-function padToMinLength(arr: string[], min: number): string[] {
-  const result = [...arr];
-  while (result.length < min) result.push("");
-  return result;
-}

@@ -34,7 +34,7 @@
 ```
 ┌────────────────────────────────────────────────────┐
 │  Browser (Next.js Client Components)                │
-│  - 入力フォーム（自社URL + 競合URL × 3〜5）           │
+│  - 入力フォーム（自社URL + 競合URL × 0〜5・任意）     │
 │  - 競合分析結果（KWチェックリスト）                  │
 │  - 生成テキスト一覧（11種カード）                    │
 └──────────────────┬─────────────────────────────────┘
@@ -131,7 +131,7 @@
   name: string,                    // 案件名（会社名）
   input: {
     selfUrl: string,
-    competitorUrls: string[],      // 3〜5個
+    competitorUrls: string[],      // 0〜5個・任意
     companyName?: string,
     industry?: string,
     additionalKeywords?: string[],
@@ -166,7 +166,7 @@
 ### 5.1 競合分析フロー
 
 ```
-1. ユーザーが自社URL + 競合URL（3〜5）を入力 → analyzeCompetitors実行
+1. ユーザーが自社URL + 競合URL（0〜5・任意）を入力 → analyzeCompetitors実行
 2. 各HPを並列fetch（タイムアウト10秒）
 3. 各HPでcheerioパース → 内部リンク抽出 → 5カテゴリ分類
    （商品・コンセプト・施工事例・サービス・会社概要）
@@ -287,6 +287,12 @@
 ### 2026-05-06 — 競合は最大5社・各最大5ページ
 - 5×5=25ページ並列fetch、Vercel関数の制限内（60秒）
 - Gemini APIへの投入トークンも管理可能範囲
+
+### 2026-05-06 — 競合URLを必須から任意（0〜5社）に変更
+- 競合HPがない案件でも初動で使えるようにするため
+- 競合0時は TF-IDF差分が使えないため、自社HP本文をプロンプトに直接含めて Gemini に推薦させる
+- 競合あり時は従来通り TF-IDF表 + 自社HP抜粋の両方をプロンプトに含める
+- 仕様書の「3〜5個」記述を「0〜5個・任意」に統一
 
 ### 2026-05-06 — LLMをAnthropic ClaudeからGoogle Geminiへ切替
 - Anthropic は従量課金で社内利用にハードルあり

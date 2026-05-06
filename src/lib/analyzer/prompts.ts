@@ -120,6 +120,8 @@ export const KW_SELECTION_RESPONSE_SCHEMA = {
 export interface KwSelectionInput {
   selfUrl: string;
   competitorUrls: string[];
+  /** 自社HP本文の抜粋（要約用、最大3000字程度） */
+  selfTextExcerpt: string;
   topTerms: Array<{
     term: string;
     selfCount: number;
@@ -128,21 +130,39 @@ export interface KwSelectionInput {
   }>;
 }
 
+const SELF_TEXT_LIMIT = 3000;
+
 export function buildKwSelectionUserPrompt(input: KwSelectionInput): string {
-  const tableLines = input.topTerms.map(
+  const hasCompetitors = input.competitorUrls.length > 0;
+  const selfText = input.selfTextExcerpt.slice(0, SELF_TEXT_LIMIT);
+
+  const competitorBlock = hasCompetitors
+    ? `【競合HP（${input.competitorUrls.length}社）】
+${input.competitorUrls.map((u) => `- ${u}`).join("\n")}
+
+【TF-IDF差分上位 ${input.topTerms.length}語（競合に頻出かつ自社で不足）】
+キーワード\t自社頻度\t競合頻度\t差分スコア
+${input.topTerms
+  .map(
     (t) =>
       `${t.term}\t自社:${t.selfCount}\t競合:${t.competitorCount}\t差分:${t.diffScore.toFixed(4)}`,
-  );
+  )
+  .join("\n")}`
+    : `【競合HP】指定なし
+（差分分析は使用できません。自社HPの内容と工務店業界一般の AIO/MEO ベストプラクティスから10KWを推薦してください。）`;
 
   return `【自社HP】
 ${input.selfUrl}
 
-【競合HP（${input.competitorUrls.length}社）】
-${input.competitorUrls.map((u) => `- ${u}`).join("\n")}
+【自社HP本文（抜粋）】
+${selfText}
 
-【TF-IDF差分上位 ${input.topTerms.length}語】
-キーワード\t自社頻度\t競合頻度\t差分スコア
-${tableLines.join("\n")}
+${competitorBlock}
 
-上記から10個を精選し、5カテゴリに分類してJSON形式で返してください。`;
+上記をベースに、対策すべきキーワードを10個精選し、5カテゴリに分類してJSON形式で返してください。
+${
+  !hasCompetitors
+    ? "競合データがないため、selfCount/competitorCount は self=入力本文中の出現回数, competitor=0 として返してください。"
+    : ""
+}`;
 }
