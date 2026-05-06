@@ -1,8 +1,22 @@
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
 import type { FetchedPage, Product } from "@/types/scraper";
+import { isExcludedUrl } from "./classify-pages";
 
+/**
+ * 商品/サービス系ページのURLパターン。
+ * お問い合わせ・来場予約・資料請求につながる「動線ページ」を優先。
+ *
+ * 含む:
+ *  - モデルハウス・商品・ラインナップ・施工事例
+ *  - 個別相談・来場予約・見学会・イベント
+ *  - 保証・アフターメンテナンス・サポート
+ *
+ * 除外（EXCLUDE_URL_PATTERNS で別途）:
+ *  - ブログ・コラム・ニュース・お知らせ・スタッフ日誌
+ */
 const PRODUCT_URL_PATTERNS = [
+  // モデルハウス・商品
   /\/modelhouse\/[^/]+/i,
   /\/model-?house\/[^/]+/i,
   /\/product\/[^/]+/i,
@@ -13,6 +27,33 @@ const PRODUCT_URL_PATTERNS = [
   /\/plan\/[^/]+/i,
   /\/plans\/[^/]+/i,
   /\/house\/[^/]+/i,
+  /\/works\/[^/]+/i,
+  /\/case\/[^/]+/i,
+  /\/jirei\/[^/]+/i,
+  // 個別相談・来場予約・見学会
+  /\/consultation\b/i,
+  /\/soudan\b/i,
+  /\/相談/,
+  /\/reservation\b/i,
+  /\/yoyaku\b/i,
+  /\/予約/,
+  /\/visit\b/i,
+  /\/kengaku\b/i,
+  /\/見学/,
+  /\/event\/[^/]+/i,
+  /\/events\/[^/]+/i,
+  /\/openhouse\b/i,
+  /\/open-?house\b/i,
+  /\/fair\b/i,
+  // 保証・アフターメンテナンス
+  /\/warranty\b/i,
+  /\/guarantee\b/i,
+  /\/maintenance\b/i,
+  /\/aftercare\b/i,
+  /\/after-?service\b/i,
+  /\/support\b/i,
+  /\/保証/,
+  /\/アフター/,
 ];
 
 interface Candidate {
@@ -45,6 +86,9 @@ export function extractProducts(
       } catch {
         return;
       }
+
+      // ブログ・コラム・ニュース系URLは確実に除外
+      if (isExcludedUrl(absoluteUrl)) return;
 
       const isProductUrl = PRODUCT_URL_PATTERNS.some((p) =>
         p.test(absoluteUrl),

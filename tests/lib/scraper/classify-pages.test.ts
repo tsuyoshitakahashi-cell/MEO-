@@ -59,7 +59,7 @@ describe("classifyPages", () => {
       "https://example.com/works/case-001/",
       "https://example.com/service/",
       "https://example.com/company/",
-      "https://example.com/news/",
+      "https://example.com/contact/",
     ];
     const result = classifyPages(urls);
     expect(result.concept).toEqual(["https://example.com/concept/"]);
@@ -67,7 +67,35 @@ describe("classifyPages", () => {
     expect(result.works).toEqual(["https://example.com/works/case-001/"]);
     expect(result.service).toEqual(["https://example.com/service/"]);
     expect(result.company).toEqual(["https://example.com/company/"]);
-    expect(result.other).toEqual(["https://example.com/news/"]);
+    expect(result.other).toEqual(["https://example.com/contact/"]);
+  });
+
+  it("ブログ・ニュース・コラム系URLは完全除外される", () => {
+    const urls = [
+      "https://example.com/blog/",
+      "https://example.com/blog/post-1/",
+      "https://example.com/column/",
+      "https://example.com/news/",
+      "https://example.com/staff-blog/",
+      "https://example.com/topics/",
+      "https://example.com/concept/", // これだけ残る
+    ];
+    const result = classifyPages(urls);
+    expect(result.concept).toEqual(["https://example.com/concept/"]);
+    expect(result.other).toEqual([]);
+    // すべてのカテゴリで blog/news/column が含まれていない
+    const allUrls = [
+      ...result.concept,
+      ...result.product,
+      ...result.works,
+      ...result.service,
+      ...result.company,
+      ...result.other,
+    ];
+    expect(allUrls).not.toContain("https://example.com/blog/");
+    expect(allUrls).not.toContain("https://example.com/blog/post-1/");
+    expect(allUrls).not.toContain("https://example.com/column/");
+    expect(allUrls).not.toContain("https://example.com/news/");
   });
 
   it("重複URLを排除する", () => {

@@ -264,7 +264,7 @@ export function CompetitorForm({ initial }: Props) {
         <CardHeader>
           <CardTitle>競合分析・対策KW提案</CardTitle>
           <CardDescription>
-            自社HPを入力するとAIO対策に有効なキーワード10個をカテゴリ別に提案します。
+            自社HPを入力するとAIO対策に有効なキーワード20個をカテゴリ別に提案します（地域系3個以上 / クエリファンアウト対応のロングテール優先）。
             競合HP（任意・最大5社）を追加すると差分分析の精度が上がります。
           </CardDescription>
         </CardHeader>
@@ -348,7 +348,7 @@ export function CompetitorForm({ initial }: Props) {
       {result && (
         <Card>
           <CardHeader>
-            <CardTitle>提案キーワード（10個）</CardTitle>
+            <CardTitle>提案キーワード（20個）</CardTitle>
             <CardDescription>
               チェックを入れたKWが文章生成で使用されます。現在 {selectedTerms.size}個 選択中。
             </CardDescription>

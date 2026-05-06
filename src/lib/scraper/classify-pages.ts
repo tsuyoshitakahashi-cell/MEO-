@@ -5,6 +5,47 @@ interface CategoryRule {
   patterns: RegExp[];
 }
 
+/**
+ * ブログ・コラム・お知らせ系のURL。MEO/AIO対策の観点で
+ * 「お問い合わせ・ページクリックに繋がらない情報発信ページ」のため
+ * 全工程で除外する（TF-IDFノイズ除去 + 商品抽出対象外）
+ */
+export const EXCLUDE_URL_PATTERNS: RegExp[] = [
+  /\/blog\b/i,
+  /\/blogs\b/i,
+  /\/column\b/i,
+  /\/columns\b/i,
+  /\/news\b/i,
+  /\/info\/news/i,
+  /\/article\b/i,
+  /\/articles\b/i,
+  /\/post\b/i,
+  /\/posts\b/i,
+  /\/diary\b/i,
+  /\/staff(-blog)?\b/i,
+  /\/topics\b/i,
+  /\/おしらせ/,
+  /\/お知らせ/,
+  /\/category\b/i,
+  /\/categories\b/i,
+  /\/tag\b/i,
+  /\/tags\b/i,
+  /\/archive\b/i,
+  /\/archives\b/i,
+  /\/feed\b/i,
+  /\/rss\b/i,
+];
+
+export function isExcludedUrl(url: string): boolean {
+  let pathname: string;
+  try {
+    pathname = new URL(url).pathname;
+  } catch {
+    pathname = url;
+  }
+  return EXCLUDE_URL_PATTERNS.some((p) => p.test(pathname));
+}
+
 const RULES: CategoryRule[] = [
   {
     category: "product",
@@ -89,6 +130,11 @@ export function classifyUrl(url: string): PageCategory | null {
     pathname = url;
   }
 
+  // ブログ・お知らせ系は明示的にスキップ（other にも入れない）
+  if (EXCLUDE_URL_PATTERNS.some((p) => p.test(pathname))) {
+    return null;
+  }
+
   for (const rule of RULES) {
     if (rule.patterns.some((p) => p.test(pathname))) {
       return rule.category;
@@ -111,6 +157,9 @@ export function classifyPages(urls: string[]): ClassifiedPages {
   for (const url of urls) {
     if (seen.has(url)) continue;
     seen.add(url);
+
+    // ブログ・コラム・ニュース系は完全除外（other にも入れない）
+    if (isExcludedUrl(url)) continue;
 
     const category = classifyUrl(url);
     if (category) {
