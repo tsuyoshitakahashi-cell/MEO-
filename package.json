@@ -9,6 +9,7 @@
     "lint": "eslint",
     "scrape:demo": "tsx scripts/scrape-demo.ts",
     "analyze:demo": "dotenv -e .env.local -- tsx scripts/analyze-demo.ts",
+    "generate:demo": "dotenv -e .env.local -- tsx scripts/generate-demo.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

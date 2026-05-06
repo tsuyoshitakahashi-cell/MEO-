@@ -14,8 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { analyzeCompetitorsAction } from "@/server/actions/analyze-competitors";
+import { generateTextsAction } from "@/server/actions/generate-texts";
 import type { AnalyzeResult } from "@/lib/analyzer/analyze";
 import type { Keyword } from "@/lib/analyzer/prompts";
+import type { GenerateResult } from "@/lib/generator/generate";
+import { GeneratedTextsView } from "@/components/generated-texts-view";
 
 const URL_SCHEMA = z.string().url();
 
@@ -52,6 +55,12 @@ export function CompetitorForm() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTerms, setSelectedTerms] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
+
+  const [generateResult, setGenerateResult] = useState<GenerateResult | null>(
+    null,
+  );
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [generating, startGenerating] = useTransition();
 
   function updateCompetitorUrl(index: number, value: string) {
     const next = [...competitorUrls];
@@ -91,6 +100,8 @@ export function CompetitorForm() {
     setError(null);
     setResult(null);
     setSelectedTerms(new Set());
+    setGenerateResult(null);
+    setGenerateError(null);
     const validationError = validateInputs();
     if (validationError) {
       setError(validationError);
@@ -118,6 +129,26 @@ export function CompetitorForm() {
         }
       }
       setSelectedTerms(initialSelected);
+    });
+  }
+
+  function handleGenerate() {
+    setGenerateError(null);
+    setGenerateResult(null);
+    if (selectedTerms.size === 0) {
+      setGenerateError("採用するキーワードを1つ以上選択してください");
+      return;
+    }
+    startGenerating(async () => {
+      const res = await generateTextsAction({
+        selfUrl: selfUrl.trim(),
+        selectedKeywords: Array.from(selectedTerms),
+      });
+      if (!res.ok || !res.data) {
+        setGenerateError(res.error ?? "文章生成に失敗しました");
+        return;
+      }
+      setGenerateResult(res.data);
     });
   }
 
@@ -262,8 +293,33 @@ export function CompetitorForm() {
                 );
               },
             )}
+
+            <div className="space-y-2 border-t pt-4">
+              <Button
+                type="button"
+                onClick={handleGenerate}
+                disabled={generating || selectedTerms.size === 0}
+                className="w-full"
+              >
+                {generating
+                  ? "文章生成中…（30〜60秒）"
+                  : `選択中の${selectedTerms.size}KWで AIO文章を一括生成`}
+              </Button>
+              {generateError && (
+                <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+                  {generateError}
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
+      )}
+
+      {generateResult && (
+        <GeneratedTextsView
+          texts={generateResult.texts}
+          selectedKeywords={generateResult.selectedKeywords}
+        />
       )}
     </div>
   );

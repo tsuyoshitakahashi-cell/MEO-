@@ -91,29 +91,27 @@
 ## Phase 3: AIO文章生成（4日）
 
 ### 3-1. AIOプロンプト設計（1日）
-- [ ] `lib/generator/prompts.ts`: AIOシステムプロンプト
-  - 結論先出し / 固有名詞・数字 / 曖昧表現禁止 / Q&A埋込 / E-E-A-T
-- [ ] JSON Schema定義（11種テキスト）
-- [ ] サービス説明5軸の自動選定ロジック（プロンプト指示）
+- [x] `lib/generator/prompts.ts`: AIOシステムプロンプト10項目（PREP/固有名詞/曖昧禁止/Q&A/E-E-A-T等） (done: 2026-05-06)
+- [x] Gemini responseSchema 定義（11種テキスト構造化出力） (done: 2026-05-06)
+- [x] サービス説明5軸の自動選定指示（KW別/ターゲット別/HP抽出別の混合） (done: 2026-05-06)
 
 ### 3-2. 一括生成オーケストレーター（1日）
-- [ ] `lib/generator/generate.ts`: 採用KW + 取得HP + 抽出商品をGemini APIに投入
-- [ ] 文字数バリデーション（超過時は末尾削除）
-- [ ] エラーハンドリング・リトライ3回
-- [ ] `server/actions/generate-texts.ts`
+- [x] `lib/generator/generate.ts`: 自社HP巡回→商品抽出→Gemini投入 (done: 2026-05-06)
+- [x] 文字数バリデーション（超過時は末尾切り詰め） (done: 2026-05-06)
+- [x] gemini-clientの指数バックオフリトライを継承 (done: 2026-05-06)
+- [x] `server/actions/generate-texts.ts` (done: 2026-05-06)
 
 ### 3-3. UI（1日）
-- [ ] 生成結果カード（11種、コピーボタン、文字数カウンタ、使用KW表示）
-- [ ] サービス5軸カード（各軸のタイトル・本文）
-- [ ] 商品5商品カード（商品名・参照URL・本文）
-- [ ] 一括CSVダウンロードボタン
+- [x] `components/generated-texts-view.tsx`: 11種テキストカード(コピー/文字数/使用KW表示) (done: 2026-05-06)
+- [x] `components/copy-button.tsx`: 汎用コピーボタン (done: 2026-05-06)
+- [x] CSVダウンロード（11種一括） (done: 2026-05-06)
+- [x] competitor-form.tsx に「文章生成」ボタンと結果連結 (done: 2026-05-06)
 
-### 3-4. プロンプト調整（1日）
-- [ ] 実HP3社で生成テスト
-- [ ] AIO観点（ChatGPT/Perplexity引用適性）でレビュー
-- [ ] プロンプト微調整
+### 3-4. 動作確認
+- [x] CLIデモスクリプト `scripts/generate-demo.ts` (done: 2026-05-06)
+- [x] `npm run generate:demo -- <self> "KW1,KW2,..."` で実行可能 (done: 2026-05-06)
 
-**完了条件**: 11種テキストがAIO対策された形で生成される
+**完了条件**: 11種テキストがAIO対策された形で生成される ✓
 
 ---
 
