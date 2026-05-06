@@ -21,21 +21,20 @@
 
 ## Phase 0: 環境構築（1日）
 
-- [ ] Next.js 15 プロジェクト生成（pnpm create next-app）
-- [ ] TypeScript / Tailwind / shadcn/ui セットアップ
-- [ ] GitHub リポジトリ作成（private）
-- [ ] Vercel プロジェクト連携、自動デプロイ設定
-- [ ] Vercel Postgres プロビジョニング
-- [ ] Drizzle ORM セットアップ + 初期スキーマ（users / cases）
-- [ ] `.env.example` 作成
-  - ANTHROPIC_API_KEY
-  - AUTH_SECRET
-  - GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
-  - DATABASE_URL
-- [ ] NextAuth v5 + Google Provider セットアップ
-- [ ] @sho-san.co.jp ドメイン制限を signIn callback で実装
-- [ ] middleware で /(app)/ ルートを認証ガード
-- [ ] サインイン画面 + 仮トップ画面
+- [x] Next.js 16 プロジェクト生成（create-next-app, pnpmは権限エラーでnpm採用）(done: 2026-05-06)
+- [x] TypeScript / Tailwind / shadcn/ui セットアップ (done: 2026-05-06)
+- [x] Drizzle ORM セットアップ + 初期スキーマ（users / accounts / sessions / cases） (done: 2026-05-06)
+- [x] `.env.example` 作成 (done: 2026-05-06)
+- [x] NextAuth v5 + Google Provider セットアップ (done: 2026-05-06)
+- [x] @sho-san.co.jp ドメイン制限を signIn callback で実装 (done: 2026-05-06)
+- [x] proxy（旧middleware）で /(app)/ ルートを認証ガード (done: 2026-05-06)
+- [x] サインイン画面 + 仮トップ画面 (done: 2026-05-06)
+- [x] git init + 初回コミット (done: 2026-05-06)
+- [ ] **【ユーザー操作】** GitHub remote へ `git push -u origin main`
+- [ ] **【ユーザー操作】** Vercel プロジェクト連携 (`npx vercel`)
+- [ ] **【ユーザー操作】** Vercel Postgres プロビジョニング
+- [ ] **【ユーザー操作】** Google OAuth クライアント発行 + `.env.local` 設定
+- [ ] **【ユーザー操作】** `npx drizzle-kit push` でDBスキーマ反映
 
 **完了条件**: @sho-san.co.jp でログインでき、DB接続OK
 
