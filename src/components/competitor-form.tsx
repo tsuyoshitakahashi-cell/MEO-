@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { analyzeCompetitorsAction } from "@/server/actions/analyze-competitors";
 import { generateTextsAction } from "@/server/actions/generate-texts";
+import {
+  createCase,
+  updateCase,
+} from "@/server/actions/case-crud";
 import type { AnalyzeResult } from "@/lib/analyzer/analyze";
 import type { Keyword } from "@/lib/analyzer/prompts";
 import type { GenerateResult } from "@/lib/generator/generate";
@@ -44,23 +49,49 @@ const RECOMMENDATION_COLOR: Record<Keyword["recommendation"], string> = {
     "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
 };
 
-export function CompetitorForm() {
-  const [selfUrl, setSelfUrl] = useState("");
-  const [competitorUrls, setCompetitorUrls] = useState<string[]>([
-    "",
-    "",
-    "",
-  ]);
-  const [result, setResult] = useState<AnalyzeResult | null>(null);
+export interface InitialCase {
+  id: string;
+  name: string;
+  selfUrl: string;
+  competitorUrls: string[];
+  competitorAnalysis: AnalyzeResult | null;
+  selectedTerms: string[];
+  generateResult: GenerateResult | null;
+}
+
+interface Props {
+  initial?: InitialCase;
+}
+
+export function CompetitorForm({ initial }: Props) {
+  const router = useRouter();
+
+  const [caseName, setCaseName] = useState(initial?.name ?? "");
+  const [caseId, setCaseId] = useState<string | null>(initial?.id ?? null);
+  const [selfUrl, setSelfUrl] = useState(initial?.selfUrl ?? "");
+  const [competitorUrls, setCompetitorUrls] = useState<string[]>(
+    initial?.competitorUrls.length
+      ? padToMinLength(initial.competitorUrls, 3)
+      : ["", "", ""],
+  );
+  const [result, setResult] = useState<AnalyzeResult | null>(
+    initial?.competitorAnalysis ?? null,
+  );
   const [error, setError] = useState<string | null>(null);
-  const [selectedTerms, setSelectedTerms] = useState<Set<string>>(new Set());
+  const [selectedTerms, setSelectedTerms] = useState<Set<string>>(
+    new Set(initial?.selectedTerms ?? []),
+  );
   const [pending, startTransition] = useTransition();
 
   const [generateResult, setGenerateResult] = useState<GenerateResult | null>(
-    null,
+    initial?.generateResult ?? null,
   );
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generating, startGenerating] = useTransition();
+
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [saving, startSaving] = useTransition();
 
   function updateCompetitorUrl(index: number, value: string) {
     const next = [...competitorUrls];
@@ -121,7 +152,6 @@ export function CompetitorForm() {
         return;
       }
       setResult(res.data);
-      // 初期状態: must/recommend を選択済みに
       const initialSelected = new Set<string>();
       for (const kw of res.data.selection.keywords) {
         if (kw.recommendation !== "optional") {
@@ -159,6 +189,75 @@ export function CompetitorForm() {
     setSelectedTerms(next);
   }
 
+  function handleSave() {
+    setSaveError(null);
+    if (!caseName.trim()) {
+      setSaveError("案件名を入力してください");
+      return;
+    }
+    if (!result) {
+      setSaveError("先に競合分析を実行してください");
+      return;
+    }
+
+    startSaving(async () => {
+      const filledCompetitors = competitorUrls
+        .map((u) => u.trim())
+        .filter(Boolean);
+
+      const competitorAnalysis = result
+        ? {
+            keywords: result.selection.keywords.map((kw) => ({
+              term: kw.term,
+              category: kw.category,
+              competitorCount: kw.competitorCount,
+              selfCount: kw.selfCount,
+              aiCitationScore: kw.aiCitationScore,
+              recommendation: kw.recommendation,
+              selected: selectedTerms.has(kw.term),
+            })),
+            analyzedAt: new Date().toISOString(),
+          }
+        : null;
+
+      const generatedTexts = generateResult
+        ? {
+            ...generateResult.texts,
+            generatedAt: new Date().toISOString(),
+          }
+        : null;
+
+      const payload = {
+        name: caseName.trim(),
+        input: {
+          selfUrl: selfUrl.trim(),
+          competitorUrls: filledCompetitors,
+        },
+        competitorAnalysis,
+        generatedTexts,
+      };
+
+      if (caseId) {
+        const res = await updateCase(caseId, payload);
+        if (!res.ok) {
+          setSaveError(res.error ?? "保存に失敗しました");
+          return;
+        }
+        setSavedAt(new Date());
+        router.refresh();
+      } else {
+        const res = await createCase(payload);
+        if (!res.ok || !res.data) {
+          setSaveError(res.error ?? "保存に失敗しました");
+          return;
+        }
+        setCaseId(res.data.id);
+        setSavedAt(new Date());
+        router.push(`/cases/${res.data.id}`);
+      }
+    });
+  }
+
   const groupedKeywords = groupByCategory(
     result?.selection.keywords ?? [],
   );
@@ -174,6 +273,18 @@ export function CompetitorForm() {
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
+            <Label htmlFor="caseName">案件名</Label>
+            <Input
+              id="caseName"
+              type="text"
+              placeholder="例: 株式会社サンプル工務店A"
+              value={caseName}
+              onChange={(e) => setCaseName(e.target.value)}
+              disabled={pending || generating || saving}
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="selfUrl">自社HP URL（必須）</Label>
             <Input
               id="selfUrl"
@@ -181,7 +292,7 @@ export function CompetitorForm() {
               placeholder="https://example.com/"
               value={selfUrl}
               onChange={(e) => setSelfUrl(e.target.value)}
-              disabled={pending}
+              disabled={pending || generating || saving}
             />
           </div>
 
@@ -194,14 +305,14 @@ export function CompetitorForm() {
                   placeholder={`競合 ${i + 1}: https://...`}
                   value={url}
                   onChange={(e) => updateCompetitorUrl(i, e.target.value)}
-                  disabled={pending}
+                  disabled={pending || generating || saving}
                 />
                 {competitorUrls.length > 3 && (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => removeCompetitor(i)}
-                    disabled={pending}
+                    disabled={pending || generating || saving}
                   >
                     削除
                   </Button>
@@ -213,7 +324,7 @@ export function CompetitorForm() {
                 type="button"
                 variant="outline"
                 onClick={addCompetitor}
-                disabled={pending}
+                disabled={pending || generating || saving}
               >
                 + 競合を追加
               </Button>
@@ -222,7 +333,7 @@ export function CompetitorForm() {
 
           <Button
             onClick={handleAnalyze}
-            disabled={pending}
+            disabled={pending || generating || saving}
             className="w-full"
           >
             {pending ? "分析中…（30〜60秒）" : "競合分析を実行"}
@@ -241,8 +352,7 @@ export function CompetitorForm() {
           <CardHeader>
             <CardTitle>提案キーワード（10個）</CardTitle>
             <CardDescription>
-              チェックを入れたKWが Phase 3（文章生成）で使用されます。
-              現在 {selectedTerms.size}個 選択中。
+              チェックを入れたKWが文章生成で使用されます。現在 {selectedTerms.size}個 選択中。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -264,11 +374,11 @@ export function CompetitorForm() {
                           <Checkbox
                             checked={selectedTerms.has(kw.term)}
                             onCheckedChange={() => toggleTerm(kw.term)}
-                            disabled={pending}
+                            disabled={pending || generating || saving}
                             className="mt-0.5"
                           />
                           <div className="flex-1 space-y-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span className="font-medium">{kw.term}</span>
                               <span
                                 className={`rounded px-2 py-0.5 text-xs ${RECOMMENDATION_COLOR[kw.recommendation]}`}
@@ -298,7 +408,9 @@ export function CompetitorForm() {
               <Button
                 type="button"
                 onClick={handleGenerate}
-                disabled={generating || selectedTerms.size === 0}
+                disabled={
+                  generating || saving || selectedTerms.size === 0 || pending
+                }
                 className="w-full"
               >
                 {generating
@@ -321,6 +433,43 @@ export function CompetitorForm() {
           selectedKeywords={generateResult.selectedKeywords}
         />
       )}
+
+      {result && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{caseId ? "案件を更新" : "案件として保存"}</CardTitle>
+            <CardDescription>
+              {caseId
+                ? "現在の状態で既存の案件を更新します。"
+                : "現在の入力・分析・生成結果を案件として保存します。"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || pending || generating}
+              variant="default"
+            >
+              {saving
+                ? "保存中…"
+                : caseId
+                  ? "案件を更新"
+                  : "案件を保存"}
+            </Button>
+            {savedAt && (
+              <p className="text-sm text-muted-foreground">
+                保存しました（{savedAt.toLocaleTimeString("ja-JP")}）
+              </p>
+            )}
+            {saveError && (
+              <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+                {saveError}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
@@ -334,4 +483,10 @@ function groupByCategory(
     grouped[kw.category]!.push(kw);
   }
   return grouped;
+}
+
+function padToMinLength(arr: string[], min: number): string[] {
+  const result = [...arr];
+  while (result.length < min) result.push("");
+  return result;
 }
